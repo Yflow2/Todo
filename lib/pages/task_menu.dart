@@ -33,8 +33,8 @@ class _TaskMenuState extends State<TaskMenu> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-
       home: Scaffold(
+        backgroundColor: Colors.white,
         body: Padding(
           padding: EdgeInsetsDirectional.symmetric(horizontal: MediaQuery.of(context).size.width * 0.06,vertical: MediaQuery.of(context).size.width * 0.08),
           child: SafeArea(
@@ -45,8 +45,7 @@ class _TaskMenuState extends State<TaskMenu> {
 
                   //Top Part Task
                   Container(
-                    color: Colors.green,
-                    height: 120,
+                    height: 100,
                     child: Row(
                       children: [
                         // Task Text
@@ -82,13 +81,11 @@ class _TaskMenuState extends State<TaskMenu> {
                     ),
                   ),
 
-                  //Gap 1
-                  const SizedBox(height: 20,),
+
 
                   //ListView
                   Expanded(
                     child: Container(
-                      color: Colors.yellow,
                       child: ListView.builder(
                         itemCount: titles.length,
                         itemBuilder: (context, index) {
@@ -132,6 +129,7 @@ class _TaskMenuState extends State<TaskMenu> {
                               );
                             },
                             child: Card(
+                              color: const Color(0xFFF5F5F5) ,
                               child: Padding(
                                 padding: const EdgeInsetsDirectional.all(5),
                                 child: ListTile(
@@ -157,6 +155,7 @@ class _TaskMenuState extends State<TaskMenu> {
         ),
 
         bottomNavigationBar: BottomAppBar(
+          color: const Color(0xFFF5F5F5),
           shape: const CircularNotchedRectangle(),  // This makes space for FAB
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
