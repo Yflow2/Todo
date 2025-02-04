@@ -5,9 +5,9 @@ import 'package:restapi/pages/task_menu.dart';
 import '../classes/taskitem.dart';
 
 class TaskDetail extends StatefulWidget {
-  final String title;
+  String title;
 
-  const TaskDetail({super.key, required this.title});
+  TaskDetail({super.key, required this.title});
 
   @override
   State<TaskDetail> createState() => TaskDetailState();
@@ -18,18 +18,21 @@ class TaskDetailState extends State<TaskDetail> {
 
   static List<TaskCategory> taskitems = [
     TaskCategory(
-        title: "Aniket",
-        tasks: [TaskItem(itemName: "Paani piyo", isChecked: true)]),
-    TaskCategory(title: "Vinayak", tasks: [
-      TaskItem(itemName: "Paani piyo", isChecked: true),
-      TaskItem(itemName: "Paani piyo", isChecked: true)
-    ]),
-    TaskCategory(title: "Ramayan", tasks: [
-      TaskItem(itemName: "Paani piyo", isChecked: true),
-      TaskItem(itemName: "Paani piyo", isChecked: true),
-      TaskItem(itemName: "Paani piyo", isChecked: true)
-    ]),
+      title: "Work",
+      tasks: [
+        TaskItem(itemName: "Send email", isChecked: false),
+        TaskItem(itemName: "Finish report", isChecked: true),
+      ],
+    ),
+    TaskCategory(
+      title: "Personal",
+      tasks: [
+        TaskItem(itemName: "Buy groceries", isChecked: false),
+        TaskItem(itemName: "Go for a run", isChecked: true),
+      ],
+    ),
   ];
+
 
   late TaskCategory taskCategory;
   bool exists = false;
@@ -44,15 +47,45 @@ class TaskDetailState extends State<TaskDetail> {
   }
 
   void addItem() {
-    if(textController.text.isNotEmpty){
+    if(textController.text.isNotEmpty && textController.text.trim() != ""){
       setState(() {
         taskitems.add(taskCategory);
         //Need to add refresh
         taskCategory.tasks.add(TaskItem(itemName: textController.text));
         textController.clear();
       });
+    } else{
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Please Enter a valid input"),
+        duration: Duration(seconds: 2),
+      ));
     }
   }
+
+  void editItem(){
+    if(textController.text.isNotEmpty && textController.text.trim() != ""){
+      setState(() {
+        for(var category in taskitems){
+          if(category.title == widget.title){
+            category.title = textController.text;
+            taskCategory.title = textController.text;
+          }
+        }
+        for(var task in TaskMenuState.titles){
+          if(task.title == widget.title){
+            task.title = textController.text;
+          }
+        }
+        widget.title = textController.text;
+        textController.clear();
+      });
+    }else{
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Please Enter a valid input"),
+        duration: Duration(seconds: 2),
+      ));
+    }
+}
 
   Future displayBottomSheet(BuildContext context,int index, String title) {
     return showModalBottomSheet(
@@ -174,6 +207,85 @@ class TaskDetailState extends State<TaskDetail> {
     );
   }
 
+  Future displayBottomSheetForUpdate(BuildContext context, String title) {
+    return showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      barrierColor: Colors.grey.withValues(alpha: 0.8),
+      backgroundColor: Colors.white,
+      isDismissible: false,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom ),
+          child: SizedBox(
+            height: 250,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(title,
+                      style: TextStyle(fontSize: 20, color: Colors.black)),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  TextField(
+                    controller: textController,
+                    decoration:
+                    const InputDecoration(border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                        borderSide: BorderSide(
+                            width: 2.0
+                        )
+                    ),hintText: "New Title"),
+                  ),
+                  SizedBox(height: 30,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      SizedBox(
+                          width: 120,
+                          child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  elevation: 10,
+                                  backgroundColor: const Color(0xFFF5F5F5)),
+                              onPressed: () => {Navigator.pop(context)},
+                              child: const Text(
+                                "No",
+                                style:
+                                TextStyle(color: Colors.black, fontSize: 20),
+                              ))),
+                      SizedBox(
+                        width: 120,
+                        child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                elevation: 10,
+                                backgroundColor: Color(0xFFF5F5F5)),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              setState(() {
+                                editItem();
+                              });
+                            },
+                            child: Text(
+                              "Edit",
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontSize: 20,
+                              ),
+                            )),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -211,8 +323,9 @@ class TaskDetailState extends State<TaskDetail> {
                             top: 1,
                             right: 1,
                             child: IconButton(
-                                onPressed: () => {
+                                onPressed: () {
                                       // Logic for edit
+                                  displayBottomSheetForUpdate(context,"Edit your title");
                                     },
                                 icon: const Icon(Icons.edit)),
                           )

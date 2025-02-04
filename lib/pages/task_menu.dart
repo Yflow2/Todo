@@ -13,17 +13,22 @@ class TaskMenuState extends State<TaskMenu> {
   TextEditingController textController = TextEditingController();
 
   static List<TitleList> titles = [
-    TitleList(title: "Aniket"),
-    TitleList(title: "Sartan")
+    TitleList(title: "Work"),
+    TitleList(title: "Personal")
   ];
 
   void addTitle() {
-    if (textController.text.isNotEmpty) {
+    if (textController.text.isNotEmpty && textController.text.trim() != "") {
       setState(() {
         titles.add(TitleList(title: textController.text));
         textController.clear();
         titles.sort((a, b) => a.title.compareTo(b.title));
       });
+    }else{
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Please Enter a valid input"),
+        duration: Duration(seconds: 2),
+      ));
     }
   }
 
@@ -45,8 +50,8 @@ class TaskMenuState extends State<TaskMenu> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(title,
-                      style: TextStyle(fontSize: 20, color: Colors.black)),
-                  SizedBox(
+                      style: const TextStyle(fontSize: 20, color: Colors.black)),
+                  const SizedBox(
                     height: 30,
                   ),
                   TextField(
@@ -80,14 +85,14 @@ class TaskMenuState extends State<TaskMenu> {
                         child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                                 elevation: 10,
-                                backgroundColor: Color(0xFFF5F5F5)),
+                                backgroundColor: const Color(0xFFF5F5F5)),
                             onPressed: () {
                               Navigator.pop(context);
                               setState(() {
                                 addTitle();
                               });
                             },
-                            child: Text(
+                            child: const Text(
                               "Add",
                               style: TextStyle(
                                 color: Colors.red,
@@ -119,10 +124,10 @@ class TaskMenuState extends State<TaskMenu> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text("Delete task?",style: TextStyle(fontSize: 30,color: Colors.black)),
-                SizedBox(height: 15,),
+                const Text("Delete task?",style: TextStyle(fontSize: 30,color: Colors.black)),
+                const SizedBox(height: 15,),
                 Text("Are you sure you want to delete: $title",style: TextStyle(fontSize: 15,color: Colors.black)),
-                SizedBox(height: 30,),
+                const SizedBox(height: 30,),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -131,7 +136,7 @@ class TaskMenuState extends State<TaskMenu> {
                       width: 120,
                       child: ElevatedButton(style: ElevatedButton.styleFrom(elevation: 10,backgroundColor: Color(0xFFF5F5F5)),onPressed: () {
                         Navigator.pop(context);
-                      }, child: Text("Yes",style: TextStyle(color: Colors.red,fontSize: 20,),)),
+                      }, child: const Text("Yes",style: TextStyle(color: Colors.red,fontSize: 20,),)),
                     ),
                   ],
                 )
@@ -146,157 +151,211 @@ class TaskMenuState extends State<TaskMenu> {
   @override
   Widget build(BuildContext context) {
     return
-      Scaffold(
-        resizeToAvoidBottomInset: true,
-        backgroundColor: Colors.white,
-        body: Padding(
-          padding: EdgeInsetsDirectional.symmetric(
-              horizontal: MediaQuery.of(context).size.width * 0.06,
-              vertical: MediaQuery.of(context).size.width * 0.08),
-          child: SafeArea(
-            child: Container(
-              child: Column(
-                children: [
-                  //Top Part Task
-                  Container(
-                    height: 100,
-                    child: Row(
-                      children: [
-                        // Task Text
-                        Expanded(
-                          child: Stack(
-                            children: [
-                              const Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Tasks",
-                                    style: TextStyle(fontSize: 30),
-                                  ),
-                                  Text("Create your categorized tasks"),
-                                ],
-                              ),
+      PopScope(
+        canPop: false,
+        child: Scaffold(
+          resizeToAvoidBottomInset: true,
+          backgroundColor: Colors.white,
+          body: Padding(
+            padding: EdgeInsetsDirectional.symmetric(
+                horizontal: MediaQuery.of(context).size.width * 0.06,
+                vertical: MediaQuery.of(context).size.width * 0.08),
+            child: SafeArea(
+              child: Container(
+                child: Column(
+                  children: [
+                    //Top Part Task
+                    Container(
+                      height: 100,
+                      child: Row(
+                        children: [
+                          // Task Text
+                          Expanded(
+                            child: Stack(
+                              children: [
+                                const Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Tasks",
+                                      style: TextStyle(fontSize: 30),
+                                    ),
+                                    Text("Create your categorized tasks"),
+                                  ],
+                                ),
 
-                              // Edit Button
-                              Positioned(
-                                top: 1,
-                                right: 1,
-                                child: IconButton(
-                                    onPressed: () => {
-                                          // Logic for edit
-                                        },
-                                    icon: const Icon(Icons.edit)),
-                              )
-                            ],
-                          ),
-                        )
-                      ],
+                                // Edit Button
+                                Positioned(
+                                  top: 1,
+                                  right: 1,
+                                  child: IconButton(
+                                      onPressed: () async {
+                                        return showModalBottomSheet(
+                                          context: context,
+                                          backgroundColor: Colors.white,
+                                          isScrollControlled: true,
+                                          builder: (context) {
+                                            return const Padding(
+                                              padding: EdgeInsets.all(20.0),
+                                              child: FractionallySizedBox(
+                                                heightFactor: 0.5,
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      "Instructions:",
+                                                      style: TextStyle(
+                                                        fontSize: 24, // Increased font size
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    SizedBox(height: 50),
+                                                    Text(
+                                                      "• Tap the ➕ button to add a new item.",
+                                                      style: TextStyle(fontSize: 18),
+                                                    ),
+                                                    Text(
+                                                      "• Swipe right on a title to delete it.",
+                                                      style: TextStyle(fontSize: 18),
+                                                    ),
+                                                    Text(
+                                                      "• Tap a title to open it and add tasks.",
+                                                      style: TextStyle(fontSize: 18),
+                                                    ),
+                                                    Text(
+                                                      "• You can rename the title from that screen.",
+                                                      style: TextStyle(fontSize: 18),
+                                                    ),
+                                                    Text(
+                                                      "• Delete tasks inside the selected title if needed.",
+                                                      style: TextStyle(fontSize: 18),
+                                                    ),
+                                                    Text(
+                                                      "• Edit the title anytime to keep things organized.",
+                                                      style: TextStyle(fontSize: 18),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+
+
+                                          },
+                                        );
+                                      },
+                                      icon: const Icon(Icons.question_mark)),
+                                )
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
                     ),
-                  ),
 
-                  //ListView
-                  Expanded(
-                    child: ListView.builder(
-                        itemCount: titles.length,
-                        itemBuilder: (context, index) {
-                          return Dismissible(
-                            key: Key(titles[index].title),
-                            direction: DismissDirection.startToEnd,
-                            onDismissed: (direction) {
-                              setState(() {
-                                titles.removeAt(index);
-                                TaskDetailState.taskitems.removeWhere(
-                                    (taskTitle) =>
-                                        taskTitle.title ==
-                                        titles[index].title);
-                              });
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content: Text("Deleted Task"),
-                                duration: Duration(seconds: 2),
-                              ));
-                            },
-                            confirmDismiss: (direction) async {
-                              return await displayBottomSheet(context,index,"${titles[index].title}");
-                            },
-                            child: Card(
-                              color: const Color(0xFFF5F5F5),
-                              child: Padding(
-                                padding: const EdgeInsetsDirectional.all(5),
-                                child: ListTile(
-                                  title: Text(titles[index].title),
-                                  onTap: () => Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => TaskDetail(
-                                              title: titles[index].title))),
+                    //ListView
+                    Expanded(
+                      child: ListView.builder(
+                          itemCount: titles.length,
+                          itemBuilder: (context, index) {
+                            return Dismissible(
+                              key: Key(titles[index].title),
+                              direction: DismissDirection.startToEnd,
+                              onDismissed: (direction) {
+                                setState(() {
+                                  titles.removeAt(index);
+                                  TaskDetailState.taskitems.removeWhere(
+                                      (taskTitle) =>
+                                          taskTitle.title ==
+                                          titles[index].title);
+                                });
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(
+                                  content: Text("Deleted Task"),
+                                  duration: Duration(seconds: 2),
+                                ));
+                              },
+                              confirmDismiss: (direction) async {
+                                return await displayBottomSheet(context,index,"${titles[index].title}");
+                              },
+                              child: Card(
+                                color: const Color(0xFFF5F5F5),
+                                child: Padding(
+                                  padding: const EdgeInsetsDirectional.all(5),
+                                  child: ListTile(
+                                    title: Text(titles[index].title),
+                                    onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => TaskDetail(
+                                                title: titles[index].title))),
+                                  ),
                                 ),
                               ),
-                            ),
-                          );
-                        }),
-                  )
-                ],
+                            );
+                          }),
+                    )
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-        bottomNavigationBar: BottomAppBar(
-          color: const Color(0xFFF5F5F5),
-          shape: const CircularNotchedRectangle(), // This makes space for FAB
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.home,
-                    color: Colors.blueAccent, size: 30.0),
-                onPressed: () {
-                  // Action for Home button
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.search,
-                    color: Colors.blueAccent, size: 40.0),
-                onPressed: () {
-                  // Action for Search button
-                },
-              ),
-              const SizedBox(width: 48), // Space for FAB
-              IconButton(
-                icon: const Icon(Icons.calendar_month,
-                    color: Colors.blueAccent, size: 30.0),
-                onPressed: () {
-                  // Action for Calendar button
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.more_horiz,
-                    color: Colors.blueAccent, size: 30.0),
-                onPressed: () {
-                  // Action for More button
-                },
-              ),
-            ],
-          ),
-        ),
-        floatingActionButton: SizedBox(
-          height: 70,
-          width: 70,
-          child: FloatingActionButton(
-            backgroundColor: Colors.blueAccent,
-            shape: const CircleBorder(),
-            onPressed:() {
-              displayBottomSheetFotText(context,"What do you want to add?");
-            } ,
-            child: const Icon(
-              Icons.add,
-              color: Colors.white,
-              size: 30,
+          bottomNavigationBar: BottomAppBar(
+            color: const Color(0xFFF5F5F5),
+            shape: const CircularNotchedRectangle(), // This makes space for FAB
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.home,
+                      color: Colors.blueAccent, size: 30.0),
+                  onPressed: () {
+                    // Action for Home button
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.search,
+                      color: Colors.blueAccent, size: 40.0),
+                  onPressed: () {
+                    // Action for Search button
+                  },
+                ),
+                const SizedBox(width: 48), // Space for FAB
+                IconButton(
+                  icon: const Icon(Icons.calendar_month,
+                      color: Colors.blueAccent, size: 30.0),
+                  onPressed: () {
+                    // Action for Calendar button
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.more_horiz,
+                      color: Colors.blueAccent, size: 30.0),
+                  onPressed: () {
+                    // Action for More button
+                  },
+                ),
+              ],
             ),
           ),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+          floatingActionButton: SizedBox(
+            height: 70,
+            width: 70,
+            child: FloatingActionButton(
+              backgroundColor: Colors.blueAccent,
+              shape: const CircleBorder(),
+              onPressed:() {
+                displayBottomSheetFotText(context,"What do you want to add?");
+              } ,
+              child: const Icon(
+                Icons.add,
+                color: Colors.white,
+                size: 30,
+              ),
+            ),
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
-    );
+            ),
+      );
   }
 }

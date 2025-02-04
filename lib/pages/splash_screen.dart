@@ -20,13 +20,23 @@ class SplashScreen extends StatelessWidget {
                 alignment: Alignment.bottomCenter, // Aligns the button at the bottom
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 60.0), // Adjust distance from the bottom
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, "/mainpage");
-                    },
-                    child: const Text("Let's get started",style: TextStyle(
-                      color: Colors.black
-                    ),),
+                  child: SizedBox(
+                    height: 60,
+                    width: 250,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)
+                        )
+                      ),
+                      onPressed: () {
+                        Navigator.pushNamed(context, "/mainpage");
+                      },
+                      child: const Text("Let's get started",style: TextStyle(
+                        color: Colors.black
+                      ),),
+                    ),
                   ),
                 ),
               ),
