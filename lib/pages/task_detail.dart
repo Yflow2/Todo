@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:restapi/pages/task_menu.dart';
 
 import '../classes/taskitem.dart';
 
@@ -9,10 +10,10 @@ class TaskDetail extends StatefulWidget {
   const TaskDetail({super.key, required this.title});
 
   @override
-  State<TaskDetail> createState() => _TaskDetailState();
+  State<TaskDetail> createState() => TaskDetailState();
 }
 
-class _TaskDetailState extends State<TaskDetail> {
+class TaskDetailState extends State<TaskDetail> {
   TextEditingController textController = TextEditingController();
 
   static List<TaskCategory> taskitems = [
@@ -46,11 +47,131 @@ class _TaskDetailState extends State<TaskDetail> {
     if(textController.text.isNotEmpty){
       setState(() {
         taskitems.add(taskCategory);
+        //Need to add refresh
         taskCategory.tasks.add(TaskItem(itemName: textController.text));
         textController.clear();
       });
-
     }
+  }
+
+  Future displayBottomSheet(BuildContext context,int index, String title) {
+    return showModalBottomSheet(
+      context: context,
+      barrierColor: Colors.grey.withValues(alpha: 0.8),
+      backgroundColor: Colors.white,
+      isDismissible: false,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: SizedBox(
+            height: 180,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text("Delete task?",style: TextStyle(fontSize: 30,color: Colors.black)),
+                SizedBox(height: 15,),
+                Text("Are you sure you want to delete: $title",style: TextStyle(fontSize: 15,color: Colors.black)),
+                SizedBox(height: 30,),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    SizedBox(width: 120,child: ElevatedButton(style: ElevatedButton.styleFrom(elevation: 10,backgroundColor: Color(0xFFF5F5F5)) ,onPressed: ()=>{ Navigator.pop(context) }, child: Text("No",style: TextStyle(color: Colors.black,fontSize: 20),))),
+                    SizedBox(
+                      width: 120,
+                      child: ElevatedButton(style: ElevatedButton.styleFrom(elevation: 10,backgroundColor: Color(0xFFF5F5F5)),onPressed: () {
+                        Navigator.pop(context);
+                        setState(() {
+                          taskCategory.tasks.removeAt(index);
+                        });
+                        }, child: Text("Yes",style: TextStyle(color: Colors.red,fontSize: 20,),)),
+                    ),
+                  ],
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future displayBottomSheetFotText(BuildContext context, String title) {
+    return showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      barrierColor: Colors.grey.withValues(alpha: 0.8),
+      backgroundColor: Colors.white,
+      isDismissible: false,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom ),
+          child: SizedBox(
+            height: 250,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(title,
+                      style: TextStyle(fontSize: 20, color: Colors.black)),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  TextField(
+                    controller: textController,
+                    decoration:
+                    const InputDecoration(border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                        borderSide: BorderSide(
+                            width: 2.0
+                        )
+                    ),hintText: "Eg: Grocerries"),
+                  ),
+                  SizedBox(height: 30,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      SizedBox(
+                          width: 120,
+                          child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  elevation: 10,
+                                  backgroundColor: const Color(0xFFF5F5F5)),
+                              onPressed: () => {Navigator.pop(context)},
+                              child: const Text(
+                                "No",
+                                style:
+                                TextStyle(color: Colors.black, fontSize: 20),
+                              ))),
+                      SizedBox(
+                        width: 120,
+                        child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                elevation: 10,
+                                backgroundColor: Color(0xFFF5F5F5)),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              setState(() {
+                                addItem();
+                              });
+                            },
+                            child: Text(
+                              "Add",
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontSize: 20,
+                              ),
+                            )),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -116,8 +237,14 @@ class _TaskDetailState extends State<TaskDetail> {
                         borderRadius: BorderRadius.circular(8.0), // Optional: rounded corners
                       ),
                       child: CheckboxListTile(
+                        secondary: IconButton(onPressed: () {
+
+                          displayBottomSheet(context,index,taskCategory.tasks[index].itemName);
+                          //Delete item
+                        }, icon: const Icon(Icons.delete,size: 25,color: Colors.red,)),
                         title: Text(taskCategory.tasks[index].itemName),
                         value: taskCategory.tasks[index].isChecked,
+
                         onChanged: (value) {
                           setState(() {
                             taskCategory.tasks[index].isChecked =
@@ -128,6 +255,7 @@ class _TaskDetailState extends State<TaskDetail> {
                         tileColor: Colors.white,
                         controlAffinity: ListTileControlAffinity.leading,
                       ),
+
                     );
                   },
                 ),
@@ -178,38 +306,8 @@ class _TaskDetailState extends State<TaskDetail> {
         child: FloatingActionButton(
           backgroundColor: Colors.blueAccent,
           shape: const CircleBorder(),
-          onPressed: () async {
-            // Add new title Dialog box
-            return await showDialog(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  title: const Text("Want to add new task?"),
-                  content: TextField(
-                    controller: textController,
-                    decoration:
-                        const InputDecoration(hintText: "Eg: Potato"),
-                  ),
-                  actions: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                            onPressed: () => {Navigator.of(context).pop()},
-                            child: const Text("Cancel")),
-                        TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop(true);
-                              //Add title name
-                              addItem();
-                            },
-                            child: const Text("Add"))
-                      ],
-                    )
-                  ],
-                );
-              },
-            );
+          onPressed: () {
+            displayBottomSheetFotText(context,"Add new Item");
           },
           child: const Icon(
             Icons.add,
@@ -221,6 +319,7 @@ class _TaskDetailState extends State<TaskDetail> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
+
 
 
 }
