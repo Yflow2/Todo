@@ -14,8 +14,22 @@ class TaskMenuState extends State<TaskMenu> {
 
   static List<TitleList> titles = [
     TitleList(title: "Work"),
-    TitleList(title: "Personal")
+    TitleList(title:"Personal")
   ];
+
+  void showSnackBarText(BuildContext context,String title){
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    scaffoldMessenger.removeCurrentSnackBar();
+
+    scaffoldMessenger.showSnackBar(
+      SnackBar(
+        content: Text(title),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
 
   void addTitle() {
     if (textController.text.isNotEmpty && textController.text.trim() != "") {
@@ -28,6 +42,8 @@ class TaskMenuState extends State<TaskMenu> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text("Please Enter a valid input"),
         duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+
       ));
     }
   }
@@ -64,7 +80,7 @@ class TaskMenuState extends State<TaskMenu> {
                       )
                     ),hintText: "Eg: Grocerries"),
                   ),
-                  SizedBox(height: 30,),
+                  const SizedBox(height: 30,),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -124,17 +140,22 @@ class TaskMenuState extends State<TaskMenu> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text("Delete task?",style: TextStyle(fontSize: 30,color: Colors.black)),
+                const Text("Delete this Category?",style: TextStyle(fontSize: 30,color: Colors.black)),
                 const SizedBox(height: 15,),
-                Text("Are you sure you want to delete: $title",style: TextStyle(fontSize: 15,color: Colors.black)),
+                Text("Are you sure you want to delete: $title",style: const TextStyle(fontSize: 15,color: Colors.black)),
                 const SizedBox(height: 30,),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    SizedBox(width: 120,child: ElevatedButton(style: ElevatedButton.styleFrom(elevation: 10,backgroundColor: Color(0xFFF5F5F5)) ,onPressed: ()=>{ Navigator.pop(context) }, child: Text("No",style: TextStyle(color: Colors.black,fontSize: 20),))),
+                    SizedBox(width: 120,child: ElevatedButton(style: ElevatedButton.styleFrom(elevation: 10,backgroundColor: const Color(0xFFF5F5F5)) ,onPressed: ()=>{ Navigator.pop(context) }, child: const Text("No",style: TextStyle(color: Colors.black,fontSize: 20),))),
                     SizedBox(
                       width: 120,
-                      child: ElevatedButton(style: ElevatedButton.styleFrom(elevation: 10,backgroundColor: Color(0xFFF5F5F5)),onPressed: () {
+                      child: ElevatedButton(style: ElevatedButton.styleFrom(elevation: 10,backgroundColor: const Color(0xFFF5F5F5)),onPressed: () {
+                        //Delete Task
+                        setState(() {
+                          TaskDetailState.taskitems.removeWhere((category) => category.title == title);
+                          titles.removeAt(index);
+                        });
                         Navigator.pop(context);
                       }, child: const Text("Yes",style: TextStyle(color: Colors.red,fontSize: 20,),)),
                     ),
@@ -154,6 +175,7 @@ class TaskMenuState extends State<TaskMenu> {
       PopScope(
         canPop: false,
         child: Scaffold(
+
           resizeToAvoidBottomInset: true,
           backgroundColor: Colors.white,
           body: Padding(
@@ -161,141 +183,141 @@ class TaskMenuState extends State<TaskMenu> {
                 horizontal: MediaQuery.of(context).size.width * 0.06,
                 vertical: MediaQuery.of(context).size.width * 0.08),
             child: SafeArea(
-              child: Container(
-                child: Column(
-                  children: [
-                    //Top Part Task
-                    Container(
-                      height: 100,
-                      child: Row(
-                        children: [
-                          // Task Text
-                          Expanded(
-                            child: Stack(
-                              children: [
-                                const Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Tasks",
-                                      style: TextStyle(fontSize: 30),
-                                    ),
-                                    Text("Create your categorized tasks"),
-                                  ],
-                                ),
-
-                                // Edit Button
-                                Positioned(
-                                  top: 1,
-                                  right: 1,
-                                  child: IconButton(
-                                      onPressed: () async {
-                                        return showModalBottomSheet(
-                                          context: context,
-                                          backgroundColor: Colors.white,
-                                          isScrollControlled: true,
-                                          builder: (context) {
-                                            return const Padding(
-                                              padding: EdgeInsets.all(20.0),
-                                              child: FractionallySizedBox(
-                                                heightFactor: 0.5,
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      "Instructions:",
-                                                      style: TextStyle(
-                                                        fontSize: 24, // Increased font size
-                                                        fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                    SizedBox(height: 50),
-                                                    Text(
-                                                      "• Tap the ➕ button to add a new item.",
-                                                      style: TextStyle(fontSize: 18),
-                                                    ),
-                                                    Text(
-                                                      "• Swipe right on a title to delete it.",
-                                                      style: TextStyle(fontSize: 18),
-                                                    ),
-                                                    Text(
-                                                      "• Tap a title to open it and add tasks.",
-                                                      style: TextStyle(fontSize: 18),
-                                                    ),
-                                                    Text(
-                                                      "• You can rename the title from that screen.",
-                                                      style: TextStyle(fontSize: 18),
-                                                    ),
-                                                    Text(
-                                                      "• Delete tasks inside the selected title if needed.",
-                                                      style: TextStyle(fontSize: 18),
-                                                    ),
-                                                    Text(
-                                                      "• Edit the title anytime to keep things organized.",
-                                                      style: TextStyle(fontSize: 18),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            );
-
-
-                                          },
-                                        );
-                                      },
-                                      icon: const Icon(Icons.question_mark)),
-                                )
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-
-                    //ListView
-                    Expanded(
-                      child: ListView.builder(
-                          itemCount: titles.length,
-                          itemBuilder: (context, index) {
-                            return Dismissible(
-                              key: Key(titles[index].title),
-                              direction: DismissDirection.startToEnd,
-                              onDismissed: (direction) {
-                                setState(() {
-                                  titles.removeAt(index);
-                                  TaskDetailState.taskitems.removeWhere(
-                                      (taskTitle) =>
-                                          taskTitle.title ==
-                                          titles[index].title);
-                                });
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(const SnackBar(
-                                  content: Text("Deleted Task"),
-                                  duration: Duration(seconds: 2),
-                                ));
-                              },
-                              confirmDismiss: (direction) async {
-                                return await displayBottomSheet(context,index,"${titles[index].title}");
-                              },
-                              child: Card(
-                                color: const Color(0xFFF5F5F5),
-                                child: Padding(
-                                  padding: const EdgeInsetsDirectional.all(5),
-                                  child: ListTile(
-                                    title: Text(titles[index].title),
-                                    onTap: () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) => TaskDetail(
-                                                title: titles[index].title))),
+              child: Column(
+                children: [
+                  //Top Part Task
+                  SizedBox(
+                    height: 100,
+                    child: Row(
+                      children: [
+                        // Task Text
+                        Expanded(
+                          child: Stack(
+                            children: [
+                              const Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Tasks Category",
+                                    style: TextStyle(fontSize: 30),
                                   ),
+                                  Text("Create your categorized tasks"),
+                                ],
+                              ),
+
+                              // Edit Button
+                              Positioned(
+                                top: 1,
+                                right: 1,
+                                child: IconButton(
+                                    onPressed: () async {
+                                      return showModalBottomSheet(
+                                        context: context,
+                                        backgroundColor: Colors.white,
+                                        isScrollControlled: true,
+                                        builder: (context) {
+                                          return const Padding(
+                                            padding: EdgeInsets.all(20.0),
+                                            child: FractionallySizedBox(
+                                              heightFactor: 0.5,
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    "Instructions:",
+                                                    style: TextStyle(
+                                                      fontSize: 24, // Increased font size
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                  SizedBox(height: 50),
+                                                  Text(
+                                                    "• Tap the ➕ button to add a new item.",
+                                                    style: TextStyle(fontSize: 18),
+                                                  ),
+                                                  Text(
+                                                    "• Swipe right on a title to delete it.",
+                                                    style: TextStyle(fontSize: 18),
+                                                  ),
+                                                  Text(
+                                                    "• Tap a title to open it and add tasks.",
+                                                    style: TextStyle(fontSize: 18),
+                                                  ),
+                                                  Text(
+                                                    "• You can rename the title from that screen.",
+                                                    style: TextStyle(fontSize: 18),
+                                                  ),
+                                                  Text(
+                                                    "• Delete tasks inside the selected title if needed.",
+                                                    style: TextStyle(fontSize: 18),
+                                                  ),
+                                                  Text(
+                                                    "• Edit the title anytime to keep things organized.",
+                                                    style: TextStyle(fontSize: 18),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+
+
+                                        },
+                                      );
+                                    },
+                                    icon: const Icon(Icons.question_mark)),
+                              )
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+
+                  //ListView
+                  Expanded(
+                    child: ListView.builder(
+                        itemCount: titles.length,
+                        itemBuilder: (context, index) {
+                          return Dismissible(
+                            key: Key(titles[index].title),
+                            direction: DismissDirection.startToEnd,
+                            onDismissed: (direction) {
+                              setState(() {
+                                titles.removeAt(index);
+                                TaskDetailState.taskitems.removeWhere(
+                                    (taskTitle) =>
+                                        taskTitle.title ==
+                                        titles[index].title);
+                              });
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(
+                                content: Text("Deleted Task"),
+                                duration: Duration(seconds: 2),
+                                behavior: SnackBarBehavior.floating,
+
+                              ));
+                            },
+                            confirmDismiss: (direction) async {
+                              return await displayBottomSheet(context,index,titles[index].title);
+                            },
+                            child: Card(
+                              color: const Color(0xFFF5F5F5),
+                              child: Padding(
+                                padding: const EdgeInsetsDirectional.all(5),
+                                child: ListTile(
+                                  title: Text(titles[index].title),
+                                  onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => TaskDetail(
+                                              title: titles[index].title))),
                                 ),
                               ),
-                            );
-                          }),
-                    )
-                  ],
-                ),
+                            ),
+                          );
+                        }),
+                  )
+                ],
               ),
             ),
           ),
@@ -308,15 +330,17 @@ class TaskMenuState extends State<TaskMenu> {
                 IconButton(
                   icon: const Icon(Icons.home,
                       color: Colors.blueAccent, size: 30.0),
-                  onPressed: () {
-                    // Action for Home button
-                  },
+                  onPressed: () => showSnackBarText(context,"This is Home Page"),
                 ),
                 IconButton(
                   icon: const Icon(Icons.search,
                       color: Colors.blueAccent, size: 40.0),
                   onPressed: () {
                     // Action for Search button
+                    showSearch(
+                      context: context,
+                      delegate: CustomSearchDelegate(),
+                    );
                   },
                 ),
                 const SizedBox(width: 48), // Space for FAB
@@ -325,6 +349,7 @@ class TaskMenuState extends State<TaskMenu> {
                       color: Colors.blueAccent, size: 30.0),
                   onPressed: () {
                     // Action for Calendar button
+                    showSnackBarText(context,"Work in Progress");
                   },
                 ),
                 IconButton(
@@ -332,6 +357,7 @@ class TaskMenuState extends State<TaskMenu> {
                       color: Colors.blueAccent, size: 30.0),
                   onPressed: () {
                     // Action for More button
+                    showSnackBarText(context,"Work in Progress");
                   },
                 ),
               ],
@@ -354,8 +380,105 @@ class TaskMenuState extends State<TaskMenu> {
             ),
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-
             ),
       );
   }
 }
+
+class CustomSearchDelegate extends SearchDelegate {
+
+  @override
+  ThemeData appBarTheme(BuildContext context) {
+    return ThemeData(
+      appBarTheme: const AppBarTheme(
+        color: Colors.blueAccent,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20,vertical: 10),
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none
+        ),
+        hintStyle: const TextStyle(color: Colors.black)
+      )
+    );
+  }
+
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: const Icon(Icons.clear,color: Colors.white,),
+        onPressed: () {
+          query = ''; // Clears the search query
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, null); // Close the search bar
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    final results = TaskMenuState.titles.where((title) =>
+        title.title.toLowerCase().contains(query.toLowerCase())).toList();
+
+    return Container(
+      color: Colors.white,
+      child: ListView.builder(
+        itemCount: results.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(results[index].title),
+            onTap: () {
+              close(context, results[index].title);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TaskDetail(title: results[index].title),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    final suggestions = TaskMenuState.titles.where((title) =>
+        title.title.toLowerCase().contains(query.toLowerCase())).toList();
+
+    return Container(
+      color: Colors.white,
+      child: ListView.builder(
+        itemCount: suggestions.length,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(suggestions[index].title),
+            onTap: () {
+              close(context, suggestions[index].title);
+              Navigator.push(context, MaterialPageRoute(
+                builder: (context) {
+                  return TaskDetail(title: suggestions[index].title);
+                },
+              ));
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+

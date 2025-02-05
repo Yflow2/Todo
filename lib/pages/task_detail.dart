@@ -1,9 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:restapi/pages/task_menu.dart';
 
 import '../classes/taskitem.dart';
 
+//ignore: must_be_immutable
 class TaskDetail extends StatefulWidget {
   String title;
 
@@ -33,9 +33,7 @@ class TaskDetailState extends State<TaskDetail> {
     ),
   ];
 
-
   late TaskCategory taskCategory;
-  bool exists = false;
 
   @override
   void initState() {
@@ -46,18 +44,34 @@ class TaskDetailState extends State<TaskDetail> {
     );
   }
 
+  void showSnackBarText(BuildContext context,String title){
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    scaffoldMessenger.removeCurrentSnackBar();
+
+    scaffoldMessenger.showSnackBar(
+      SnackBar(
+        content: Text(title),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   void addItem() {
     if(textController.text.isNotEmpty && textController.text.trim() != ""){
       setState(() {
+        taskCategory.tasks.add(TaskItem(itemName: textController.text));
         taskitems.add(taskCategory);
         //Need to add refresh
-        taskCategory.tasks.add(TaskItem(itemName: textController.text));
         textController.clear();
       });
     } else{
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text("Please Enter a valid input"),
         duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+
       ));
     }
   }
@@ -83,6 +97,8 @@ class TaskDetailState extends State<TaskDetail> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text("Please Enter a valid input"),
         duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+
       ));
     }
 }
@@ -101,22 +117,23 @@ class TaskDetailState extends State<TaskDetail> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text("Delete task?",style: TextStyle(fontSize: 30,color: Colors.black)),
-                SizedBox(height: 15,),
-                Text("Are you sure you want to delete: $title",style: TextStyle(fontSize: 15,color: Colors.black)),
-                SizedBox(height: 30,),
+                const Text("Delete task?",style: TextStyle(fontSize: 30,color: Colors.black)),
+                const SizedBox(height: 15,),
+                Text("Are you sure you want to delete: $title",style: const TextStyle(fontSize: 15,color: Colors.black)),
+                const SizedBox(height: 30,),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    SizedBox(width: 120,child: ElevatedButton(style: ElevatedButton.styleFrom(elevation: 10,backgroundColor: Color(0xFFF5F5F5)) ,onPressed: ()=>{ Navigator.pop(context) }, child: Text("No",style: TextStyle(color: Colors.black,fontSize: 20),))),
+                    SizedBox(width: 120,child: ElevatedButton(style: ElevatedButton.styleFrom(elevation: 10,backgroundColor: const Color(0xFFF5F5F5)) ,onPressed: ()=>{ Navigator.pop(context) }, child: const Text("No",style: TextStyle(color: Colors.black,fontSize: 20),))),
                     SizedBox(
                       width: 120,
-                      child: ElevatedButton(style: ElevatedButton.styleFrom(elevation: 10,backgroundColor: Color(0xFFF5F5F5)),onPressed: () {
+                      child: ElevatedButton(style: ElevatedButton.styleFrom(elevation: 10,backgroundColor: const Color(0xFFF5F5F5)),onPressed: () {
                         Navigator.pop(context);
                         setState(() {
+                          //Delete item from particular title
                           taskCategory.tasks.removeAt(index);
                         });
-                        }, child: Text("Yes",style: TextStyle(color: Colors.red,fontSize: 20,),)),
+                        }, child: const Text("Yes",style: TextStyle(color: Colors.red,fontSize: 20,),)),
                     ),
                   ],
                 )
@@ -146,8 +163,8 @@ class TaskDetailState extends State<TaskDetail> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(title,
-                      style: TextStyle(fontSize: 20, color: Colors.black)),
-                  SizedBox(
+                      style: const TextStyle(fontSize: 20, color: Colors.black)),
+                  const SizedBox(
                     height: 30,
                   ),
                   TextField(
@@ -160,7 +177,7 @@ class TaskDetailState extends State<TaskDetail> {
                         )
                     ),hintText: "Eg: Grocerries"),
                   ),
-                  SizedBox(height: 30,),
+                  const SizedBox(height: 30,),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -181,14 +198,14 @@ class TaskDetailState extends State<TaskDetail> {
                         child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                                 elevation: 10,
-                                backgroundColor: Color(0xFFF5F5F5)),
+                                backgroundColor: const Color(0xFFF5F5F5)),
                             onPressed: () {
                               Navigator.pop(context);
                               setState(() {
                                 addItem();
                               });
                             },
-                            child: Text(
+                            child: const Text(
                               "Add",
                               style: TextStyle(
                                 color: Colors.red,
@@ -225,8 +242,8 @@ class TaskDetailState extends State<TaskDetail> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(title,
-                      style: TextStyle(fontSize: 20, color: Colors.black)),
-                  SizedBox(
+                      style: const TextStyle(fontSize: 20, color: Colors.black)),
+                  const SizedBox(
                     height: 30,
                   ),
                   TextField(
@@ -239,7 +256,7 @@ class TaskDetailState extends State<TaskDetail> {
                         )
                     ),hintText: "New Title"),
                   ),
-                  SizedBox(height: 30,),
+                  const SizedBox(height: 30,),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -260,14 +277,14 @@ class TaskDetailState extends State<TaskDetail> {
                         child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
                                 elevation: 10,
-                                backgroundColor: Color(0xFFF5F5F5)),
+                                backgroundColor: const Color(0xFFF5F5F5)),
                             onPressed: () {
                               Navigator.pop(context);
                               setState(() {
                                 editItem();
                               });
                             },
-                            child: Text(
+                            child: const Text(
                               "Edit",
                               style: TextStyle(
                                 color: Colors.green,
@@ -299,7 +316,7 @@ class TaskDetailState extends State<TaskDetail> {
           child: Column(
             children: [
               //Top Part
-              Container(
+              SizedBox(
                 height: 100,
                 child: Row(
                   children: [
@@ -387,12 +404,19 @@ class TaskDetailState extends State<TaskDetail> {
               icon: const Icon(Icons.home, color: Colors.blueAccent, size: 30.0),
               onPressed: () {
                 // Action for Home button
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (context) {
+                    return const TaskMenu();
+                  },
+                ));
               },
             ),
             IconButton(
               icon: const Icon(Icons.search, color: Colors.blueAccent, size: 40.0),
               onPressed: () {
                 // Action for Search button
+                showSnackBarText(context,"Work in progress");
+
               },
             ),
             const SizedBox(width: 48), // Space for FAB
@@ -401,6 +425,8 @@ class TaskDetailState extends State<TaskDetail> {
                   color: Colors.blueAccent, size: 30.0),
               onPressed: () {
                 // Action for Calendar button
+                showSnackBarText(context,"Work in progress");
+
               },
             ),
             IconButton(
@@ -408,6 +434,8 @@ class TaskDetailState extends State<TaskDetail> {
                   const Icon(Icons.more_horiz, color: Colors.blueAccent, size: 30.0),
               onPressed: () {
                 // Action for More button
+                showSnackBarText(context,"Work in progress");
+
               },
             ),
           ],
@@ -430,6 +458,7 @@ class TaskDetailState extends State<TaskDetail> {
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+
     );
   }
 
