@@ -1,5 +1,7 @@
+import 'package:drift/drift.dart' as dr;
 import 'package:flutter/material.dart';
 import 'package:restapi/classes/title_list.dart';
+import 'package:restapi/database/database.dart';
 import 'package:restapi/pages/task_detail.dart';
 
 class TaskMenu extends StatefulWidget {
@@ -10,6 +12,9 @@ class TaskMenu extends StatefulWidget {
 }
 
 class TaskMenuState extends State<TaskMenu> {
+
+  AppDatabase database = AppDatabase();
+  late Future<List<Category>> categoryTitleList;
   TextEditingController textController = TextEditingController();
 
   static List<TitleList> titles = [
@@ -33,11 +38,11 @@ class TaskMenuState extends State<TaskMenu> {
 
   void addTitle() {
     if (textController.text.isNotEmpty && textController.text.trim() != "") {
+      database.insertCategory(CategoriesCompanion(title: dr.Value(textController.text)));
       setState(() {
-        titles.add(TitleList(title: textController.text));
-        textController.clear();
-        titles.sort((a, b) => a.title.compareTo(b.title));
+        categoryTitleList = loadCategoryList();
       });
+      textController.clear();
     }else{
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text("Please Enter a valid input"),
@@ -126,7 +131,7 @@ class TaskMenuState extends State<TaskMenu> {
       },
     );
   }
-   Future displayBottomSheet(BuildContext context,int index, String title) {
+   Future displayBottomSheet(BuildContext context,int index, String title, List<Category> list) {
     return showModalBottomSheet(
       context: context,
       barrierColor: Colors.grey.withValues(alpha: 0.8),
@@ -153,10 +158,10 @@ class TaskMenuState extends State<TaskMenu> {
                       child: ElevatedButton(style: ElevatedButton.styleFrom(elevation: 10,backgroundColor: const Color(0xFFF5F5F5)),onPressed: () {
                         //Delete Task
                         setState(() {
-                          TaskDetailState.taskitems.removeWhere((category) => category.title == title);
-                          titles.removeAt(index);
+                              (taskTitle) =>
+                          taskTitle.title == list[index].title;
                         });
-                        Navigator.pop(context);
+                        Navigator.pop(context,true);
                       }, child: const Text("Yes",style: TextStyle(color: Colors.red,fontSize: 20,),)),
                     ),
                   ],
@@ -170,12 +175,66 @@ class TaskMenuState extends State<TaskMenu> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    categoryTitleList = loadCategoryList();
+  }
+
+  Widget fetchAndUpdateUi( List<Category> list ){
+    return Expanded(
+      child: ListView.builder(
+          itemCount: list.length,
+          itemBuilder: (context, index) {
+            return Dismissible(
+              key: Key(list[index].id.toString(),),
+              direction: DismissDirection.startToEnd,
+              onDismissed: (direction) {
+                database.deleteCategory(list[index].id);
+                loadCategoryList();
+                setState(() {
+                  list.removeAt(index);
+                });
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(const SnackBar(
+                  content: Text("Deleted Task"),
+                  duration: Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
+      
+                ));
+              },
+              confirmDismiss: (direction) async {
+                return await displayBottomSheet(context,index,list[index].title,list);
+              },
+              child: Card(
+                color: const Color(0xFFF5F5F5),
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.all(5),
+                  child: ListTile(
+                    title: Text(list[index].title),
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => TaskDetail(
+                                id: list[index].id))),
+                  ),
+                ),
+              ),
+            );
+          }),
+    );
+
+  }
+
+  Future<List<Category>> loadCategoryList(){
+    return database.getAllCategories();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return
       PopScope(
         canPop: false,
         child: Scaffold(
-
           resizeToAvoidBottomInset: true,
           backgroundColor: Colors.white,
           body: Padding(
@@ -273,50 +332,23 @@ class TaskMenuState extends State<TaskMenu> {
                     ),
                   ),
 
-                  //ListView
-                  Expanded(
-                    child: ListView.builder(
-                        itemCount: titles.length,
-                        itemBuilder: (context, index) {
-                          return Dismissible(
-                            key: Key(titles[index].title),
-                            direction: DismissDirection.startToEnd,
-                            onDismissed: (direction) {
-                              setState(() {
-                                titles.removeAt(index);
-                                TaskDetailState.taskitems.removeWhere(
-                                    (taskTitle) =>
-                                        taskTitle.title ==
-                                        titles[index].title);
-                              });
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content: Text("Deleted Task"),
-                                duration: Duration(seconds: 2),
-                                behavior: SnackBarBehavior.floating,
+                  FutureBuilder(
+                      future: categoryTitleList,
+                      builder: (context, snapshot) {
+                        final checkCategoryList = snapshot.data;
+                        final checkCategoryListBool = checkCategoryList?.isNotEmpty;
+                        if(checkCategoryListBool == false || checkCategoryList == null){
+                          return const Center(child: Text("No Data Available"),);
+                        } else if(snapshot.hasError){
+                          return const Center(child: Text("Error in creating Error please check line 297 in task_menu"),);
+                        } else{
+                          return fetchAndUpdateUi(snapshot.data!);
+                        }
+                      },
+                  ),
 
-                              ));
-                            },
-                            confirmDismiss: (direction) async {
-                              return await displayBottomSheet(context,index,titles[index].title);
-                            },
-                            child: Card(
-                              color: const Color(0xFFF5F5F5),
-                              child: Padding(
-                                padding: const EdgeInsetsDirectional.all(5),
-                                child: ListTile(
-                                  title: Text(titles[index].title),
-                                  onTap: () => Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => TaskDetail(
-                                              title: titles[index].title))),
-                                ),
-                              ),
-                            ),
-                          );
-                        }),
-                  )
+                  //ListView
+
                 ],
               ),
             ),
@@ -337,10 +369,10 @@ class TaskMenuState extends State<TaskMenu> {
                       color: Colors.blueAccent, size: 40.0),
                   onPressed: () {
                     // Action for Search button
-                    showSearch(
+                  /*  showSearch(
                       context: context,
                       delegate: CustomSearchDelegate(),
-                    );
+                    );*/
                   },
                 ),
                 const SizedBox(width: 48), // Space for FAB
@@ -384,7 +416,7 @@ class TaskMenuState extends State<TaskMenu> {
       );
   }
 }
-
+/*
 class CustomSearchDelegate extends SearchDelegate {
 
   @override
@@ -445,7 +477,7 @@ class CustomSearchDelegate extends SearchDelegate {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => TaskDetail(title: results[index].title),
+                  builder: (context) => TaskDetail(id: results[index].id),
                 ),
               );
             },
@@ -480,5 +512,5 @@ class CustomSearchDelegate extends SearchDelegate {
       ),
     );
   }
-}
+}*/
 

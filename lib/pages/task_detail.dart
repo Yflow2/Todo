@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:restapi/database/database.dart';
 import 'package:restapi/pages/task_menu.dart';
 
 import '../classes/taskitem.dart';
 
 //ignore: must_be_immutable
 class TaskDetail extends StatefulWidget {
-  String title;
+  int id;
 
-  TaskDetail({super.key, required this.title});
+  TaskDetail({super.key, required this.id});
 
   @override
   State<TaskDetail> createState() => TaskDetailState();
 }
 
 class TaskDetailState extends State<TaskDetail> {
+
+  AppDatabase database = AppDatabase();
   TextEditingController textController = TextEditingController();
+  late Future<List<Task>> taskItems;
 
   static List<TaskCategory> taskitems = [
     TaskCategory(
@@ -38,11 +42,17 @@ class TaskDetailState extends State<TaskDetail> {
   @override
   void initState() {
     super.initState();
+    taskItems = loadTaskFromDatabase();
+/*
     taskCategory = taskitems.firstWhere(
       (category) => category.title == widget.title,
       orElse: () => TaskCategory(title: widget.title),
-    );
+    );*/
   }
+
+  Future<List<Task>> loadTaskFromDatabase(){
+    return database.getTasksByCategory(widget.id);
+}
 
   void showSnackBarText(BuildContext context,String title){
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -79,7 +89,7 @@ class TaskDetailState extends State<TaskDetail> {
   void editItem(){
     if(textController.text.isNotEmpty && textController.text.trim() != ""){
       setState(() {
-        for(var category in taskitems){
+/*        for(var category in taskitems){
           if(category.title == widget.title){
             category.title = textController.text;
             taskCategory.title = textController.text;
@@ -90,7 +100,7 @@ class TaskDetailState extends State<TaskDetail> {
             task.title = textController.text;
           }
         }
-        widget.title = textController.text;
+        widget.title = textController.text;*/
         textController.clear();
       });
     }else{
@@ -102,6 +112,44 @@ class TaskDetailState extends State<TaskDetail> {
       ));
     }
 }
+
+  Widget fetchAndUpdateUiTasks(List<Task> list){
+    return Expanded(
+      child: ListView.builder(
+        itemCount: list.length,
+        itemBuilder: (context, index) {
+          return Container(
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Colors.white,
+                width: 2.0, // Border width
+              ),
+              borderRadius: BorderRadius.circular(8.0), // Optional: rounded corners
+            ),
+            child: CheckboxListTile(
+              secondary: IconButton(onPressed: () {
+                displayBottomSheet(context,index,list[index].taskName);
+                //Delete item
+              }, icon: const Icon(Icons.delete,size: 25,color: Colors.red,)),
+              title: Text(taskCategory.tasks[index].itemName),
+              value: taskCategory.tasks[index].isChecked,
+
+              onChanged: (value) {
+                setState(() {
+                  taskCategory.tasks[index].isChecked =
+                      value ?? false;
+                });
+              },
+              activeColor: Colors.green,
+              tileColor: Colors.white,
+              controlAffinity: ListTileControlAffinity.leading,
+            ),
+
+          );
+        },
+      ),
+    );
+  }
 
   Future displayBottomSheet(BuildContext context,int index, String title) {
     return showModalBottomSheet(
@@ -132,6 +180,7 @@ class TaskDetailState extends State<TaskDetail> {
                         setState(() {
                           //Delete item from particular title
                           taskCategory.tasks.removeAt(index);
+                          loadTaskFromDatabase();
                         });
                         }, child: const Text("Yes",style: TextStyle(color: Colors.red,fontSize: 20,),)),
                     ),
@@ -328,7 +377,7 @@ class TaskDetailState extends State<TaskDetail> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                widget.title,
+                                widget.id.toString(),
                                 style: const TextStyle(fontSize: 30),
                               ),
                               const Text("3 out of 10 tasks")
@@ -353,43 +402,23 @@ class TaskDetailState extends State<TaskDetail> {
                 ),
               ),
 
+              FutureBuilder(
+                future: taskItems,
+                builder: (context, snapshot) {
+                  final checkCategoryList = snapshot.data;
+                  final checkCategoryListBool = checkCategoryList?.isNotEmpty;
+                  if(checkCategoryListBool == false || checkCategoryList == null){
+                    return const Center(child: Text("No Data Available"),);
+                  } else if(snapshot.hasError){
+                    return const Center(child: Text("Error in creating Error please check line 297 in task_menu"),);
+                  } else{
+                    return fetchAndUpdateUiTasks(snapshot.data!);
+                  }
+                },
+              ),
+
               //ListBuilder
-              Expanded(
-                child: ListView.builder(
-                  itemCount: taskCategory.tasks.length,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Colors.white,
-                          width: 2.0, // Border width
-                        ),
-                        borderRadius: BorderRadius.circular(8.0), // Optional: rounded corners
-                      ),
-                      child: CheckboxListTile(
-                        secondary: IconButton(onPressed: () {
 
-                          displayBottomSheet(context,index,taskCategory.tasks[index].itemName);
-                          //Delete item
-                        }, icon: const Icon(Icons.delete,size: 25,color: Colors.red,)),
-                        title: Text(taskCategory.tasks[index].itemName),
-                        value: taskCategory.tasks[index].isChecked,
-
-                        onChanged: (value) {
-                          setState(() {
-                            taskCategory.tasks[index].isChecked =
-                                value ?? false;
-                          });
-                        },
-                        activeColor: Colors.green,
-                        tileColor: Colors.white,
-                        controlAffinity: ListTileControlAffinity.leading,
-                      ),
-
-                    );
-                  },
-                ),
-              )
             ],
           ),
         ),
