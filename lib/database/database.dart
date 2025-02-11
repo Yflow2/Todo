@@ -27,9 +27,10 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   // CRUD for Category
+
   Future<int> insertCategory(CategoriesCompanion category) =>
       into(categories).insert(category);
 
@@ -38,8 +39,17 @@ class AppDatabase extends _$AppDatabase {
   Future deleteCategory(int id) =>
       (delete(categories)..where((c) => c.id.equals(id))).go();
 
-  Future updateCategory(Category category) =>
-      update(categories).replace(category);
+  Future<void> updateCategoryById(int categoryId, String newTitle) {
+    return (update(categories)..where((c) => c.id.equals(categoryId))).write(
+      CategoriesCompanion(
+        title: Value(newTitle),
+      ),
+    );
+  }
+
+  Future<String?> getCategoryTitleById(int categoryId) {
+    return (select(categories)..where((c) => c.id.equals(categoryId))).map((row) => row.title).getSingleOrNull();
+  }
 
   // CRUD for Tasks
   Future<int> insertTask(TasksCompanion task) => into(tasks).insert(task);
@@ -54,6 +64,20 @@ class AppDatabase extends _$AppDatabase {
   // Fetch tasks by category
   Future<List<Task>> getTasksByCategory(int categoryId) {
     return (select(tasks)..where((t) => t.categoryId.equals(categoryId))).get();
+  }
+
+  //Change isChecked Value
+  Future<void> updateTaskCheckedStatus(int taskId, bool isChecked) {
+    return (update(tasks)..where((t) => t.id.equals(taskId))).write(TasksCompanion(isChecked: Value(isChecked)));
+  }
+
+  //Update Task Name
+  Future<void> updateTaskNameById(int taskId, String newTaskName) {
+    return (update(tasks)..where((t) => t.id.equals(taskId))).write(
+      TasksCompanion(
+        taskName: Value(newTaskName),
+      ),
+    );
   }
 }
 

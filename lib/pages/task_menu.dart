@@ -211,11 +211,16 @@ class TaskMenuState extends State<TaskMenu> {
                   padding: const EdgeInsetsDirectional.all(5),
                   child: ListTile(
                     title: Text(list[index].title),
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => TaskDetail(
-                                id: list[index].id))),
+                    onTap: () async {
+                       await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => TaskDetail(
+                                  id: list[index].id)));
+                       setState(() {
+                         categoryTitleList = loadCategoryList();
+                       });
+                    }
                   ),
                 ),
               ),

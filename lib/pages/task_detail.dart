@@ -3,6 +3,7 @@ import 'package:restapi/database/database.dart';
 import 'package:restapi/pages/task_menu.dart';
 
 import '../classes/taskitem.dart';
+import 'package:drift/drift.dart' as dr;
 
 //ignore: must_be_immutable
 class TaskDetail extends StatefulWidget {
@@ -37,22 +38,24 @@ class TaskDetailState extends State<TaskDetail> {
     ),
   ];
 
-  late TaskCategory taskCategory;
 
   @override
   void initState() {
     super.initState();
     taskItems = loadTaskFromDatabase();
-/*
-    taskCategory = taskitems.firstWhere(
-      (category) => category.title == widget.title,
-      orElse: () => TaskCategory(title: widget.title),
-    );*/
+  }
+
+  Future<String?> loadTitle(int id){
+    return database.getCategoryTitleById(id);
   }
 
   Future<List<Task>> loadTaskFromDatabase(){
     return database.getTasksByCategory(widget.id);
 }
+
+  Future<void> updateTaskCheckedStatus(AppDatabase database, int id, bool valIsChecked) async {
+    await database.updateTaskCheckedStatus(id, valIsChecked);
+  }
 
   void showSnackBarText(BuildContext context,String title){
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -71,11 +74,13 @@ class TaskDetailState extends State<TaskDetail> {
   void addItem() {
     if(textController.text.isNotEmpty && textController.text.trim() != ""){
       setState(() {
-        taskCategory.tasks.add(TaskItem(itemName: textController.text));
-        taskitems.add(taskCategory);
-        //Need to add refresh
-        textController.clear();
+        database.insertTask(TasksCompanion(
+          taskName: dr.Value(textController.text),
+          categoryId: dr.Value(widget.id),
+        ));
+        taskItems = loadTaskFromDatabase();
       });
+      textController.clear();
     } else{
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text("Please Enter a valid input"),
@@ -86,21 +91,29 @@ class TaskDetailState extends State<TaskDetail> {
     }
   }
 
-  void editItem(){
+  void editTask(int id){
     if(textController.text.isNotEmpty && textController.text.trim() != ""){
       setState(() {
-/*        for(var category in taskitems){
-          if(category.title == widget.title){
-            category.title = textController.text;
-            taskCategory.title = textController.text;
-          }
-        }
-        for(var task in TaskMenuState.titles){
-          if(task.title == widget.title){
-            task.title = textController.text;
-          }
-        }
-        widget.title = textController.text;*/
+        database.updateTaskNameById(id, textController.text);
+        taskItems = loadTaskFromDatabase();
+        textController.clear();
+      });
+    }else{
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text("Please Enter a valid input"),
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+
+      ));
+    }
+  }
+
+
+  void editItem(int id){
+    if(textController.text.isNotEmpty && textController.text.trim() != ""){
+      setState(() {
+        database.updateCategoryById(id,textController.text);
+        taskItems = loadTaskFromDatabase();
         textController.clear();
       });
     }else{
@@ -127,17 +140,26 @@ class TaskDetailState extends State<TaskDetail> {
               borderRadius: BorderRadius.circular(8.0), // Optional: rounded corners
             ),
             child: CheckboxListTile(
-              secondary: IconButton(onPressed: () {
-                displayBottomSheet(context,index,list[index].taskName);
-                //Delete item
-              }, icon: const Icon(Icons.delete,size: 25,color: Colors.red,)),
-              title: Text(taskCategory.tasks[index].itemName),
-              value: taskCategory.tasks[index].isChecked,
+              secondary: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(onPressed: () {
+                    displayBottomSheetForEdit(context,"Update this task?",list[index].id);
+                  }, icon: Icon(Icons.edit,color: Colors.blueAccent,)),
+                  IconButton(onPressed: () {
+                    displayBottomSheet(context,index,list[index].taskName,list);
+                    //Delete item
+                  }, icon: const Icon(Icons.delete,size: 25,color: Colors.red,))
+                ],
+              ),
+              title: Text(list[index].taskName),
+              value: list[index].isChecked,
 
               onChanged: (value) {
                 setState(() {
-                  taskCategory.tasks[index].isChecked =
-                      value ?? false;
+                  final valIsChecked = value ?? false;
+                  updateTaskCheckedStatus(database,list[index].id,valIsChecked);
+                  taskItems = loadTaskFromDatabase();
                 });
               },
               activeColor: Colors.green,
@@ -151,7 +173,86 @@ class TaskDetailState extends State<TaskDetail> {
     );
   }
 
-  Future displayBottomSheet(BuildContext context,int index, String title) {
+  Future displayBottomSheetForEdit(BuildContext context, String title, int id,) {
+    return showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      barrierColor: Colors.grey.withValues(alpha: 0.8),
+      backgroundColor: Colors.white,
+      isDismissible: false,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom ),
+          child: SizedBox(
+            height: 250,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(title,
+                      style: const TextStyle(fontSize: 20, color: Colors.black)),
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  TextField(
+                    controller: textController,
+                    decoration:
+                    const InputDecoration(border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                        borderSide: BorderSide(
+                            width: 2.0
+                        )
+                    ),hintText: "New Task"),
+                  ),
+                  const SizedBox(height: 30,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      SizedBox(
+                          width: 120,
+                          child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  elevation: 10,
+                                  backgroundColor: const Color(0xFFF5F5F5)),
+                              onPressed: () => {Navigator.pop(context)},
+                              child: const Text(
+                                "No",
+                                style:
+                                TextStyle(color: Colors.black, fontSize: 20),
+                              ))),
+                      SizedBox(
+                        width: 120,
+                        child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                elevation: 10,
+                                backgroundColor: const Color(0xFFF5F5F5)),
+                            onPressed: () {
+                              Navigator.pop(context);
+                              setState(() {
+                                editTask(id);
+                              });
+                            },
+                            child: const Text(
+                              "Edit",
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontSize: 20,
+                              ),
+                            )),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future displayBottomSheet(BuildContext context,int index, String title, List<Task> list) {
     return showModalBottomSheet(
       context: context,
       barrierColor: Colors.grey.withValues(alpha: 0.8),
@@ -177,10 +278,10 @@ class TaskDetailState extends State<TaskDetail> {
                       width: 120,
                       child: ElevatedButton(style: ElevatedButton.styleFrom(elevation: 10,backgroundColor: const Color(0xFFF5F5F5)),onPressed: () {
                         Navigator.pop(context);
+                        //Delete Task from database
+                        database.deleteTask(list[index].id);
                         setState(() {
-                          //Delete item from particular title
-                          taskCategory.tasks.removeAt(index);
-                          loadTaskFromDatabase();
+                           taskItems = loadTaskFromDatabase();
                         });
                         }, child: const Text("Yes",style: TextStyle(color: Colors.red,fontSize: 20,),)),
                     ),
@@ -250,9 +351,7 @@ class TaskDetailState extends State<TaskDetail> {
                                 backgroundColor: const Color(0xFFF5F5F5)),
                             onPressed: () {
                               Navigator.pop(context);
-                              setState(() {
-                                addItem();
-                              });
+                              addItem();
                             },
                             child: const Text(
                               "Add",
@@ -330,7 +429,7 @@ class TaskDetailState extends State<TaskDetail> {
                             onPressed: () {
                               Navigator.pop(context);
                               setState(() {
-                                editItem();
+                                editItem(widget.id);
                               });
                             },
                             child: const Text(
@@ -376,10 +475,22 @@ class TaskDetailState extends State<TaskDetail> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                widget.id.toString(),
-                                style: const TextStyle(fontSize: 30),
-                              ),
+
+                              FutureBuilder(
+                                  future: loadTitle(widget.id),
+                                  builder: (context, snapshot) {
+                                    if(snapshot.hasError){
+                                      return const Text("Error 404");
+                                    }
+                                    else if(!snapshot.hasData || snapshot.data == null) {
+                                      return const Text("TITLE");
+                                    }
+                                    else{
+                                      return Text("${snapshot.data}",style: const TextStyle(fontSize: 30),);
+                                    }
+                                  }
+                                  ),
+
                               const Text("3 out of 10 tasks")
                             ],
                           ),
