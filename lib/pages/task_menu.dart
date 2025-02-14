@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' as dr;
 import 'package:flutter/material.dart';
 import 'package:restapi/classes/title_list.dart';
 import 'package:restapi/database/database.dart';
+import 'package:restapi/pages/task_api.dart';
 import 'package:restapi/pages/task_detail.dart';
 
 class TaskMenu extends StatefulWidget {
@@ -343,7 +344,7 @@ class TaskMenuState extends State<TaskMenu> {
                         final checkCategoryList = snapshot.data;
                         final checkCategoryListBool = checkCategoryList?.isNotEmpty;
                         if(checkCategoryListBool == false || checkCategoryList == null){
-                          return const Center(child: Text("No Data Available"),);
+                          return const Expanded(child: Center(child: Text("No Data Available",style: TextStyle(fontSize: 15),),));
                         } else if(snapshot.hasError){
                           return const Center(child: Text("Error in creating Error please check line 297 in task_menu"),);
                         } else{
@@ -382,11 +383,16 @@ class TaskMenuState extends State<TaskMenu> {
                 ),
                 const SizedBox(width: 48), // Space for FAB
                 IconButton(
-                  icon: const Icon(Icons.calendar_month,
+                  icon: const Icon(Icons.list_outlined,
                       color: Colors.blueAccent, size: 30.0),
                   onPressed: () {
                     // Action for Calendar button
-                    showSnackBarText(context,"Work in Progress");
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const TaskApi(),
+                        )
+                    );
                   },
                 ),
                 IconButton(

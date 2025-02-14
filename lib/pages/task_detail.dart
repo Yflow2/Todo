@@ -20,6 +20,8 @@ class TaskDetailState extends State<TaskDetail> {
   AppDatabase database = AppDatabase();
   TextEditingController textController = TextEditingController();
   late Future<List<Task>> taskItems;
+  var totalTasks = 0;
+  var totalTasksChecked = 0;
 
   static List<TaskCategory> taskitems = [
     TaskCategory(
@@ -80,6 +82,7 @@ class TaskDetailState extends State<TaskDetail> {
         ));
         taskItems = loadTaskFromDatabase();
       });
+      totalTasks++;
       textController.clear();
     } else{
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -105,6 +108,14 @@ class TaskDetailState extends State<TaskDetail> {
         behavior: SnackBarBehavior.floating,
 
       ));
+    }
+  }
+
+  void checkIfTrue(bool isChecked){
+    if(isChecked){
+      setState(() {
+        --totalTasksChecked;
+      });
     }
   }
 
@@ -154,12 +165,16 @@ class TaskDetailState extends State<TaskDetail> {
               ),
               title: Text(list[index].taskName),
               value: list[index].isChecked,
-
               onChanged: (value) {
                 setState(() {
                   final valIsChecked = value ?? false;
                   updateTaskCheckedStatus(database,list[index].id,valIsChecked);
                   taskItems = loadTaskFromDatabase();
+                  if(value == true){
+                    totalTasksChecked++;
+                  } else{
+                    totalTasksChecked--;
+                  }
                 });
               },
               activeColor: Colors.green,
@@ -282,6 +297,8 @@ class TaskDetailState extends State<TaskDetail> {
                         database.deleteTask(list[index].id);
                         setState(() {
                            taskItems = loadTaskFromDatabase();
+                           --totalTasks;
+                           checkIfTrue(list[index].isChecked);
                         });
                         }, child: const Text("Yes",style: TextStyle(color: Colors.red,fontSize: 20,),)),
                     ),
@@ -491,7 +508,7 @@ class TaskDetailState extends State<TaskDetail> {
                                   }
                                   ),
 
-                              const Text("3 out of 10 tasks")
+                              Text("$totalTasksChecked out of $totalTasks tasks")
                             ],
                           ),
 
@@ -519,7 +536,7 @@ class TaskDetailState extends State<TaskDetail> {
                   final checkCategoryList = snapshot.data;
                   final checkCategoryListBool = checkCategoryList?.isNotEmpty;
                   if(checkCategoryListBool == false || checkCategoryList == null){
-                    return const Center(child: Text("No Data Available"),);
+                    return const Expanded(child: Center(child: Text("No Data Available"),));
                   } else if(snapshot.hasError){
                     return const Center(child: Text("Error in creating Error please check line 297 in task_menu"),);
                   } else{
