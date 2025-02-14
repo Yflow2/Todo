@@ -22,7 +22,14 @@ class Tasks extends Table {
   IntColumn get categoryId => integer().references(Categories, #id)();
 }
 
-@DriftDatabase(tables: [Categories, Tasks])
+class Todos extends Table {
+  IntColumn get id => integer()();
+  TextColumn get todo => text()();
+  BoolColumn get completed => boolean()();
+  IntColumn get userId => integer()();
+}
+
+@DriftDatabase(tables: [Categories, Tasks , Todos])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
@@ -79,6 +86,16 @@ class AppDatabase extends _$AppDatabase {
       ),
     );
   }
+
+  // CRUD of Todos
+  Future<List<Todo>> getAllTodos(){
+    return select(todos).get();
+  }
+
+  Future<void> insertTodo(Insertable<Todo> todo) {
+    return into(todos).insert(todo);
+  }
+
 }
 
 LazyDatabase _openConnection() {

@@ -1,29 +1,49 @@
+import 'package:drift/drift.dart' as dr;
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:restapi/database/database.dart';
 import '../api/api_model.dart';
 import '../api/api_service.dart';
 
+//ignore: must_be_immutable
 class TaskApi extends StatefulWidget {
-  const TaskApi({super.key});
+  AppDatabase database;
+
+  TaskApi(this.database, {super.key});
 
   @override
   State<TaskApi> createState() => _TaskApiState();
 }
 
 class _TaskApiState extends State<TaskApi> {
-  late Future<Todo> todosFuture;
+
+  late Future<List<Todo>> todosFuture;
 
   @override
   void initState() {
     super.initState();
-    todosFuture = fetchTodos();
+    fetchTodos();
+    todosFuture = loadTodos();
   }
 
-  Future<Todo> fetchTodos() async {
+  Future<List<Todo>> loadTodos(){
+    return widget.database.getAllTodos();
+  }
+
+  Future<void> fetchTodos() async {
     final client = ApiClient(Dio());
     try {
        final response = await client.getTodo();
-       return response;
+       List<TodoList> todos = response.todos;
+
+       for (var todo in todos){
+         await widget.database.insertTodo(TodosCompanion(
+           id: dr.Value(todo.id),
+           todo: dr.Value(todo.todo),
+           completed: dr.Value(todo.completed),
+           userId: dr.Value(todo.userId),
+         ));
+       }
     } catch (e) {
       throw Exception("Failed to load API");
     }
@@ -32,20 +52,33 @@ class _TaskApiState extends State<TaskApi> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
-        appBar: AppBar(title: Text('Todo List')),
-        body: FutureBuilder<Todo>(
+        appBar: AppBar(title: const Text('Todo List')),
+        body: FutureBuilder<List<Todo>>(
           future: todosFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else if (snapshot.hasData) {
-              final todo = snapshot.data!;
-              return Center(child: Text(
-                todo.todo
-              ),);
+              final todos = snapshot.data!;
+              return ListView.builder(
+                itemCount: todos.length,
+                itemBuilder: (context, index) {
+                  final todo = todos[index];
+                  return ListTile(
+                    title: Text(todo.todo),
+                    leading: Checkbox(
+                      value: todo.completed,
+                      onChanged: (value) {
+                        // Handle checkbox change
+                      },
+                    ),
+                  );
+                },
+              );
             } else {
               return Center(child: Text('No data available'));
             }
@@ -54,7 +87,7 @@ class _TaskApiState extends State<TaskApi> {
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             setState(() {
-              todosFuture = fetchTodos();
+              todosFuture = loadTodos();
             });
           },
           child: Icon(Icons.refresh),

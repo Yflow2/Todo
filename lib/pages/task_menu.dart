@@ -390,7 +390,7 @@ class TaskMenuState extends State<TaskMenu> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const TaskApi(),
+                          builder: (context) => TaskApi(database),
                         )
                     );
                   },

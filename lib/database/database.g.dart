@@ -447,16 +447,284 @@ class TasksCompanion extends UpdateCompanion<Task> {
   }
 }
 
+class $TodosTable extends Todos with TableInfo<$TodosTable, Todo> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TodosTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _todoMeta = const VerificationMeta('todo');
+  @override
+  late final GeneratedColumn<String> todo = GeneratedColumn<String>(
+      'todo', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _completedMeta =
+      const VerificationMeta('completed');
+  @override
+  late final GeneratedColumn<bool> completed = GeneratedColumn<bool>(
+      'completed', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("completed" IN (0, 1))'));
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<int> userId = GeneratedColumn<int>(
+      'user_id', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [id, todo, completed, userId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'todos';
+  @override
+  VerificationContext validateIntegrity(Insertable<Todo> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('todo')) {
+      context.handle(
+          _todoMeta, todo.isAcceptableOrUnknown(data['todo']!, _todoMeta));
+    } else if (isInserting) {
+      context.missing(_todoMeta);
+    }
+    if (data.containsKey('completed')) {
+      context.handle(_completedMeta,
+          completed.isAcceptableOrUnknown(data['completed']!, _completedMeta));
+    } else if (isInserting) {
+      context.missing(_completedMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta));
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  Todo map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Todo(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      todo: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}todo'])!,
+      completed: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}completed'])!,
+      userId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}user_id'])!,
+    );
+  }
+
+  @override
+  $TodosTable createAlias(String alias) {
+    return $TodosTable(attachedDatabase, alias);
+  }
+}
+
+class Todo extends DataClass implements Insertable<Todo> {
+  final int id;
+  final String todo;
+  final bool completed;
+  final int userId;
+  const Todo(
+      {required this.id,
+      required this.todo,
+      required this.completed,
+      required this.userId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['todo'] = Variable<String>(todo);
+    map['completed'] = Variable<bool>(completed);
+    map['user_id'] = Variable<int>(userId);
+    return map;
+  }
+
+  TodosCompanion toCompanion(bool nullToAbsent) {
+    return TodosCompanion(
+      id: Value(id),
+      todo: Value(todo),
+      completed: Value(completed),
+      userId: Value(userId),
+    );
+  }
+
+  factory Todo.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Todo(
+      id: serializer.fromJson<int>(json['id']),
+      todo: serializer.fromJson<String>(json['todo']),
+      completed: serializer.fromJson<bool>(json['completed']),
+      userId: serializer.fromJson<int>(json['userId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'todo': serializer.toJson<String>(todo),
+      'completed': serializer.toJson<bool>(completed),
+      'userId': serializer.toJson<int>(userId),
+    };
+  }
+
+  Todo copyWith({int? id, String? todo, bool? completed, int? userId}) => Todo(
+        id: id ?? this.id,
+        todo: todo ?? this.todo,
+        completed: completed ?? this.completed,
+        userId: userId ?? this.userId,
+      );
+  Todo copyWithCompanion(TodosCompanion data) {
+    return Todo(
+      id: data.id.present ? data.id.value : this.id,
+      todo: data.todo.present ? data.todo.value : this.todo,
+      completed: data.completed.present ? data.completed.value : this.completed,
+      userId: data.userId.present ? data.userId.value : this.userId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Todo(')
+          ..write('id: $id, ')
+          ..write('todo: $todo, ')
+          ..write('completed: $completed, ')
+          ..write('userId: $userId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, todo, completed, userId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Todo &&
+          other.id == this.id &&
+          other.todo == this.todo &&
+          other.completed == this.completed &&
+          other.userId == this.userId);
+}
+
+class TodosCompanion extends UpdateCompanion<Todo> {
+  final Value<int> id;
+  final Value<String> todo;
+  final Value<bool> completed;
+  final Value<int> userId;
+  final Value<int> rowid;
+  const TodosCompanion({
+    this.id = const Value.absent(),
+    this.todo = const Value.absent(),
+    this.completed = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TodosCompanion.insert({
+    required int id,
+    required String todo,
+    required bool completed,
+    required int userId,
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        todo = Value(todo),
+        completed = Value(completed),
+        userId = Value(userId);
+  static Insertable<Todo> custom({
+    Expression<int>? id,
+    Expression<String>? todo,
+    Expression<bool>? completed,
+    Expression<int>? userId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (todo != null) 'todo': todo,
+      if (completed != null) 'completed': completed,
+      if (userId != null) 'user_id': userId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TodosCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? todo,
+      Value<bool>? completed,
+      Value<int>? userId,
+      Value<int>? rowid}) {
+    return TodosCompanion(
+      id: id ?? this.id,
+      todo: todo ?? this.todo,
+      completed: completed ?? this.completed,
+      userId: userId ?? this.userId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (todo.present) {
+      map['todo'] = Variable<String>(todo.value);
+    }
+    if (completed.present) {
+      map['completed'] = Variable<bool>(completed.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<int>(userId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TodosCompanion(')
+          ..write('id: $id, ')
+          ..write('todo: $todo, ')
+          ..write('completed: $completed, ')
+          ..write('userId: $userId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $CategoriesTable categories = $CategoriesTable(this);
   late final $TasksTable tasks = $TasksTable(this);
+  late final $TodosTable todos = $TodosTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [categories, tasks];
+  List<DatabaseSchemaEntity> get allSchemaEntities =>
+      [categories, tasks, todos];
 }
 
 typedef $$CategoriesTableCreateCompanionBuilder = CategoriesCompanion Function({
@@ -908,6 +1176,155 @@ typedef $$TasksTableProcessedTableManager = ProcessedTableManager<
     (Task, $$TasksTableReferences),
     Task,
     PrefetchHooks Function({bool categoryId})>;
+typedef $$TodosTableCreateCompanionBuilder = TodosCompanion Function({
+  required int id,
+  required String todo,
+  required bool completed,
+  required int userId,
+  Value<int> rowid,
+});
+typedef $$TodosTableUpdateCompanionBuilder = TodosCompanion Function({
+  Value<int> id,
+  Value<String> todo,
+  Value<bool> completed,
+  Value<int> userId,
+  Value<int> rowid,
+});
+
+class $$TodosTableFilterComposer extends Composer<_$AppDatabase, $TodosTable> {
+  $$TodosTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get todo => $composableBuilder(
+      column: $table.todo, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get completed => $composableBuilder(
+      column: $table.completed, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnFilters(column));
+}
+
+class $$TodosTableOrderingComposer
+    extends Composer<_$AppDatabase, $TodosTable> {
+  $$TodosTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get todo => $composableBuilder(
+      column: $table.todo, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get completed => $composableBuilder(
+      column: $table.completed, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get userId => $composableBuilder(
+      column: $table.userId, builder: (column) => ColumnOrderings(column));
+}
+
+class $$TodosTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TodosTable> {
+  $$TodosTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get todo =>
+      $composableBuilder(column: $table.todo, builder: (column) => column);
+
+  GeneratedColumn<bool> get completed =>
+      $composableBuilder(column: $table.completed, builder: (column) => column);
+
+  GeneratedColumn<int> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+}
+
+class $$TodosTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $TodosTable,
+    Todo,
+    $$TodosTableFilterComposer,
+    $$TodosTableOrderingComposer,
+    $$TodosTableAnnotationComposer,
+    $$TodosTableCreateCompanionBuilder,
+    $$TodosTableUpdateCompanionBuilder,
+    (Todo, BaseReferences<_$AppDatabase, $TodosTable, Todo>),
+    Todo,
+    PrefetchHooks Function()> {
+  $$TodosTableTableManager(_$AppDatabase db, $TodosTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TodosTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TodosTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TodosTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> todo = const Value.absent(),
+            Value<bool> completed = const Value.absent(),
+            Value<int> userId = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TodosCompanion(
+            id: id,
+            todo: todo,
+            completed: completed,
+            userId: userId,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required int id,
+            required String todo,
+            required bool completed,
+            required int userId,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TodosCompanion.insert(
+            id: id,
+            todo: todo,
+            completed: completed,
+            userId: userId,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$TodosTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $TodosTable,
+    Todo,
+    $$TodosTableFilterComposer,
+    $$TodosTableOrderingComposer,
+    $$TodosTableAnnotationComposer,
+    $$TodosTableCreateCompanionBuilder,
+    $$TodosTableUpdateCompanionBuilder,
+    (Todo, BaseReferences<_$AppDatabase, $TodosTable, Todo>),
+    Todo,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -916,4 +1333,6 @@ class $AppDatabaseManager {
       $$CategoriesTableTableManager(_db, _db.categories);
   $$TasksTableTableManager get tasks =>
       $$TasksTableTableManager(_db, _db.tasks);
+  $$TodosTableTableManager get todos =>
+      $$TodosTableTableManager(_db, _db.todos);
 }
