@@ -49,6 +49,10 @@ class _TaskApiState extends State<TaskApi> {
     }
   }
 
+  Future<void> changeCheckBox(int id, bool valForCheck) async {
+    await widget.database.checkBoxUpdate(id, valForCheck);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -73,14 +77,19 @@ class _TaskApiState extends State<TaskApi> {
                     leading: Checkbox(
                       value: todo.completed,
                       onChanged: (value) {
-                        // Handle checkbox change
+                        final valForCheck = value ?? false;
+                        setState(() {
+                          changeCheckBox(todo.id,valForCheck);
+                          todosFuture = loadTodos();
+                        });
+                        //Check Box on checked function handle
                       },
                     ),
                   );
                 },
               );
             } else {
-              return Center(child: Text('No data available'));
+              return const Center(child: Text('No data available'));
             }
           },
         ),

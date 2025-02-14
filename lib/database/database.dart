@@ -96,6 +96,14 @@ class AppDatabase extends _$AppDatabase {
     return into(todos).insert(todo);
   }
 
+  Future<void> checkBoxUpdate(int todoId,bool newValue){
+    return (update(todos)..where((t) => t.id.equals(todoId))).write(
+      TodosCompanion(completed: Value(newValue))
+    );
+  }
+
+
+
 }
 
 LazyDatabase _openConnection() {
